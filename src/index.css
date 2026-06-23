@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+  body {
+    background-color: #F5F0E8;
+    color: #1C1A17;
+    font-family: 'Inter', system-ui, sans-serif;
+    margin: 0;
+  }
+}
+
+@layer components {
+  .btn-amber {
+    @apply bg-amber text-ivory font-body font-medium tracking-wide
+           px-7 py-3 text-xs uppercase transition-all duration-200
+           hover:bg-amber-light active:scale-95 inline-flex items-center;
+  }
+  .btn-ghost {
+    @apply border border-ivory text-ivory font-body font-medium tracking-wide
+           px-7 py-3 text-xs uppercase transition-all duration-200
+           hover:bg-white hover:text-charcoal active:scale-95 inline-flex items-center;
+  }
+  .suite-card {
+    @apply bg-ivory overflow-hidden cursor-pointer
+           transition-transform duration-300 hover:-translate-y-1;
+    border-left: 3px solid #C8860A;
+  }
+  .suite-card:hover .suite-img {
+    transform: scale(1.04);
+  }
+  .suite-img {
+    @apply w-full object-cover transition-transform duration-500;
+  }
+  .amenity-pill {
+    @apply text-xs font-body font-medium tracking-wide uppercase
+           px-3 py-1 border border-charcoal/20 text-slate;
+  }
+  .form-input {
+    @apply w-full border border-charcoal/20 px-4 py-3
+           font-body text-sm text-charcoal
+           focus:outline-none focus:border-amber transition-colors duration-200;
+    background-color: #EDE5D8;
+  }
+  .form-label {
+    @apply block text-xs font-body font-medium tracking-widest uppercase text-slate mb-2;
+  }
+  .modal-overlay {
+    @apply fixed inset-0 z-50 flex items-center justify-center p-4;
+    background-color: rgba(28, 26, 23, 0.72);
+    backdrop-filter: blur(4px);
+  }
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: #F5F0E8; }
+::-webkit-scrollbar-thumb { background: #C8860A; }
+
+.hero-rule {
+  width: 2px;
+  background: #C8860A;
+  height: 80px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.card-index {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  color: #C8860A;
+  font-size: 0.68rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.suites-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .suites-grid {
+    grid-template-columns: 1fr;
+  }
+}
