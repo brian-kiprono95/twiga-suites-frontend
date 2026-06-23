@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import API from "../api";
 import SuiteCard from "./SuiteCard";
 import BookingModal from "./BookingModal";
 
@@ -21,7 +22,7 @@ export default function SuitesSection() {
   useEffect(() => {
     const fetchSuites = async () => {
       try {
-        const res = await fetch("/api/suites");
+        const res = await fetch(API + "/api/suites");
         if (!res.ok) throw new Error("Failed to load properties.");
         const data = await res.json();
         setSuites(data);

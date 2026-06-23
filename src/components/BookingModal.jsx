@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import API from "../api";
 import { X, CheckCircle, AlertCircle, Loader, Shield, Phone } from "lucide-react";
 import { formatKES } from "../data/suites";
 
@@ -85,7 +86,7 @@ export default function BookingModal({ suite, onClose }) {
   const handlePayDeposit = async () => {
     setStep("loading");
     try {
-      const res = await fetch("/api/bookings", {
+      const res = await fetch(API + "/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

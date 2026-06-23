@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import API from "../api";
 import { LogOut, RefreshCw, CheckCircle, XCircle, Clock, TrendingUp, Calendar, Trash2, PlusCircle, Edit2 } from "lucide-react";
 import { formatKES } from "../data/suites";
 
@@ -70,7 +71,7 @@ export default function AdminDashboard({ onLogout }) {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/admin/dashboard");
+      const res = await fetch(API + "/api/admin/dashboard");
       if (!res.ok) throw new Error("Failed to load dashboard.");
       const json = await res.json();
       setData(json);
@@ -83,7 +84,7 @@ export default function AdminDashboard({ onLogout }) {
 
   const fetchSuites = async () => {
     try {
-      const res = await fetch("/api/suites/admin");
+      const res = await fetch(API + "/api/suites/admin");
       if (!res.ok) throw new Error("Failed to load properties.");
       const json = await res.json();
       setSuites(json);
@@ -100,7 +101,7 @@ export default function AdminDashboard({ onLogout }) {
   const updateStatus = async (id, status) => {
     setUpdatingId(id);
     try {
-      const res = await fetch("/api/admin/bookings/" + id + "/status", {
+      const res = await fetch(API + "/api/admin/bookings/" + id + "/status", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
@@ -164,8 +165,8 @@ export default function AdminDashboard({ onLogout }) {
 
     try {
       const url = editingSuite
-        ? "/api/suites/" + editingSuite._id
-        : "/api/suites";
+        ? API + "/api/suites/" + editingSuite._id
+        : API + "/api/suites";
       const method = editingSuite ? "PUT" : "POST";
 
       const res = await fetch(url, {
@@ -191,7 +192,7 @@ export default function AdminDashboard({ onLogout }) {
   const handleDeleteSuite = async (id) => {
     if (!window.confirm("Remove this property from the listing?")) return;
     try {
-      const res = await fetch("/api/suites/" + id, { method: "DELETE" });
+      const res = await fetch(API + "/api/suites/" + id, { method: "DELETE" });
       if (!res.ok) throw new Error("Failed to remove property.");
       await fetchSuites();
     } catch (err) {
@@ -234,7 +235,6 @@ export default function AdminDashboard({ onLogout }) {
 
   return (
     <div className="min-h-screen bg-ivory-warm">
-      {/* Top bar */}
       <header className="bg-charcoal px-6 md:px-10 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="text-amber font-body font-medium tracking-widest uppercase text-sm">Twiga</span>
@@ -253,13 +253,11 @@ export default function AdminDashboard({ onLogout }) {
       </header>
 
       <div className="max-w-7xl mx-auto px-6 md:px-10 py-10">
-        {/* Page title */}
         <div className="mb-8">
           <p className="font-body text-xs tracking-widest uppercase text-amber mb-1">Management Portal</p>
           <h1 className="font-display text-charcoal text-3xl md:text-4xl font-normal">Dashboard</h1>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
           <StatCard icon={<Calendar size={18} strokeWidth={1.5} />} label="Total Bookings" value={stats.totalBookings} />
           <StatCard icon={<Clock size={18} strokeWidth={1.5} />} label="Pending" value={stats.pendingBookings} />
@@ -267,7 +265,6 @@ export default function AdminDashboard({ onLogout }) {
           <StatCard icon={<TrendingUp size={18} strokeWidth={1.5} />} label="Total Deposits" value={formatKES(stats.totalDeposits)} sub="collected so far" />
         </div>
 
-        {/* Tabs */}
         <div className="flex gap-2 mb-8 border-b border-charcoal/10">
           {["bookings", "properties"].map((tab) => (
             <button
@@ -285,7 +282,6 @@ export default function AdminDashboard({ onLogout }) {
           ))}
         </div>
 
-        {/* BOOKINGS TAB */}
         {activeTab === "bookings" && (
           <>
             <div className="flex flex-wrap gap-2 mb-6">
@@ -294,7 +290,7 @@ export default function AdminDashboard({ onLogout }) {
                   key={f}
                   onClick={() => setFilterStatus(f)}
                   className={
-                    "font-body text-xs tracking-widest uppercase px-4 py-2 border transition-all duration-150 " +
+                    "font-body text-xs tracking-widests uppercase px-4 py-2 border transition-all duration-150 " +
                     (filterStatus === f
                       ? "bg-charcoal text-ivory border-charcoal"
                       : "border-charcoal/20 text-slate hover:border-charcoal/60")
@@ -377,7 +373,6 @@ export default function AdminDashboard({ onLogout }) {
           </>
         )}
 
-        {/* PROPERTIES TAB */}
         {activeTab === "properties" && (
           <>
             <div className="flex justify-between items-center mb-6">
@@ -388,7 +383,6 @@ export default function AdminDashboard({ onLogout }) {
               </button>
             </div>
 
-            {/* Suite form */}
             {showSuiteForm && (
               <div className="bg-ivory border-l-2 border-amber p-6 mb-8">
                 <h3 className="font-display text-charcoal text-xl mb-6">
@@ -441,7 +435,7 @@ export default function AdminDashboard({ onLogout }) {
                     <input className="form-input" type="text" placeholder="https://images.unsplash.com/..." value={suiteForm.image} onChange={handleSuiteFormChange("image")} />
                   </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
                       <label className="form-label">Amenities (comma separated)</label>
                       <input className="form-input" type="text" placeholder="Rooftop terrace, Chef's kitchen, Parking" value={suiteForm.amenities} onChange={handleSuiteFormChange("amenities")} />
@@ -483,7 +477,6 @@ export default function AdminDashboard({ onLogout }) {
               </div>
             )}
 
-            {/* Properties list */}
             {suites.length === 0 ? (
               <div className="py-20 text-center bg-ivory border-l-2 border-amber">
                 <p className="font-display italic text-slate text-xl">No properties yet.</p>
