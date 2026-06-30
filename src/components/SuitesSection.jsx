@@ -5,12 +5,19 @@ import BookingModal from "./BookingModal";
 
 const FILTERS = ["All", "Beach", "Safari", "City", "Lake"];
 
-const FILTER_MAP = {
-  Beach:  ["diani-beachfront", "lamu-archipelago-suite"],
-  Safari: ["amboseli-camp-suite", "rift-valley-pavilion"],
-  City:   ["nairobi-penthouse"],
-  Lake:   ["kisumu-lakeside", "rift-valley-pavilion"],
+const FILTER_KEYWORDS = {
+  Beach:  ["beach", "diani", "malindi", "watamu", "lamu", "coast", "ocean"],
+  Safari: ["safari", "mara", "amboseli", "tsavo", "samburu", "ol pejeta", "meru", "ruma", "conservancy", "wilderness"],
+  City:   ["nairobi", "westlands", "city"],
+  Lake:   ["lake", "kisumu", "naivasha", "turkana", "bogoria", "victoria", "baringo"],
 };
+
+function matchesFilter(suite, filter) {
+  if (filter === "All") return true;
+  const keywords = FILTER_KEYWORDS[filter] || [];
+  const haystack = (suite.location + " " + suite.name + " " + suite.tagline).toLowerCase();
+  return keywords.some((kw) => haystack.includes(kw));
+}
 
 export default function SuitesSection() {
   const [suites, setSuites] = useState([]);
@@ -35,10 +42,7 @@ export default function SuitesSection() {
     fetchSuites();
   }, []);
 
-  const visible =
-    activeFilter === "All"
-      ? suites
-      : suites.filter((s) => FILTER_MAP[activeFilter]?.includes(s.slug));
+ const visible = suites.filter((s) => matchesFilter(s, activeFilter));
 
   return (
     <section id="suites" className="bg-ivory py-20 md:py-28">
