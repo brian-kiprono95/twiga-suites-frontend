@@ -230,8 +230,7 @@ export default function BookingModal({ suite, onClose }) {
   if (step === "deposit") {
     return (
       <div className="modal-overlay" ref={overlayRef} onClick={handleOverlayClick}>
-        <div className="bg-ivory w-full max-w-lg relative" style={{ borderTop: "3px solid #C8860A" }}>
-
+        <div className="bg-ivory w-full max-w-lg max-h-[90vh] overflow-y-auto relative" style={{ borderTop: "3px solid #C8860A" }}>
           <div className="sticky top-0 bg-ivory border-b border-charcoal/10 px-6 md:px-8 py-5 flex items-start justify-between z-10">
             <div>
               <p className="card-index mb-1">{suite.id}</p>
