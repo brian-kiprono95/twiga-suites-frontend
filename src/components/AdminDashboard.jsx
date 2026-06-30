@@ -114,6 +114,19 @@ export default function AdminDashboard({ onLogout }) {
       setUpdatingId(null);
     }
   };
+  const deleteBooking = async (id) => {
+    if (!window.confirm("Permanently delete this booking? This cannot be undone.")) return;
+    setUpdatingId(id);
+    try {
+      const res = await fetch(API + "/api/bookings/" + id, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete booking.");
+      await fetchDashboard();
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setUpdatingId(null);
+    }
+  };
 
   const handleSuiteFormChange = (field) => (e) => {
     setSuiteForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -362,6 +375,10 @@ export default function AdminDashboard({ onLogout }) {
                             {booking.status !== "pending" && (
                               <button onClick={() => updateStatus(booking._id, "pending")} disabled={updatingId === booking._id} className="font-body text-xs text-amber border border-amber/30 px-3 py-1 hover:bg-amber/5 transition-colors disabled:opacity-40">Pending</button>
                             )}
+                            <button onClick={() => deleteBooking(booking._id)} disabled={updatingId === booking._id} className="font-body text-xs text-slate border border-charcoal/20 px-3 py-1 hover:bg-charcoal/5 transition-colors disabled:opacity-40 flex items-center gap-1.5">
+                              <Trash2 size={11} strokeWidth={1.5} />
+                              Delete
+                            </button>
                           </div>
                         </td>
                       </tr>
