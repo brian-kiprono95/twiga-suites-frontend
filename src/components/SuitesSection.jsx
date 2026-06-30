@@ -53,9 +53,9 @@ export default function SuitesSection() {
               The Collection
             </p>
             <h2 className="font-display text-charcoal text-3xl md:text-5xl font-normal leading-tight">
-              Our properties.
+              From city lights.
               <br />
-              <em className="italic">One country.</em>
+              <em className="italic">To safari nights.</em>
             </h2>
           </div>
 

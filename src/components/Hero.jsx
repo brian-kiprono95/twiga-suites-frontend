@@ -2,7 +2,7 @@ import { ArrowDown } from "lucide-react";
 
 const STAT_ROW = [
   { value: "100+", label: "Properties" },
-  { value: "47", label: "Kenyan Counties" },
+  { value: "47", label: "Counties" },
   { value: "100%", label: "Exclusive Access" },
 ];
 
@@ -32,11 +32,11 @@ export default function Hero() {
         <div className="flex-1 flex flex-col md:flex-row md:items-end justify-between gap-12">
           <div className="max-w-2xl">
             <h1 className="font-display text-ivory text-5xl md:text-7xl lg:text-8xl leading-none font-normal">
-              Where Kenya
+              Discover Kenya,
               <br />
-              <em className="italic text-amber font-normal">reveals</em>
+              <em className="italic text-amber font-normal">One stay</em>
               <br />
-              itself.
+              at a time.
             </h1>
             <p className="mt-8 font-body text-ivory/60 text-base md:text-lg max-w-md leading-relaxed font-light">
               Comfy residences across the country's most extraordinary
