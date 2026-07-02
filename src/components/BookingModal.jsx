@@ -185,7 +185,7 @@ export default function BookingModal({ suite, onClose }) {
         </html>
       `;
 
-      const printWindow = window.open("", "_blank", "width=500,height=700");
+      const printWindow = window.open("", "_blank", "width=500,height=700,location=0,menubar=0,toolbar=0,status=0");
       printWindow.document.write(receiptContent);
       printWindow.document.close();
       printWindow.focus();
