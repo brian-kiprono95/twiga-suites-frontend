@@ -1,5 +1,5 @@
 import { useState } from "react";
-import API from "../api";
+import API, { ADMIN_KEY } from "../api";
 import { Lock, Loader, AlertCircle } from "lucide-react";
 
 export default function PinGate({ onSuccess }) {
@@ -14,9 +14,12 @@ export default function PinGate({ onSuccess }) {
     setError("");
 
     try {
-      const res = await fetch(API + "/api/admin/verify-pin", {
+     const res = await fetch(API + "/api/admin/verify-pin", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-admin-key": ADMIN_KEY,
+        },
         body: JSON.stringify({ pin }),
       });
 

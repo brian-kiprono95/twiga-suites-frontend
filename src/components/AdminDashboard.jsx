@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import API from "../api";
+import API, { ADMIN_KEY } from "../api";
 import { LogOut, RefreshCw, CheckCircle, XCircle, Clock, TrendingUp, Calendar, Trash2, PlusCircle, Edit2 } from "lucide-react";
 import { formatKES } from "../data/suites";
 
@@ -71,7 +71,9 @@ export default function AdminDashboard({ onLogout }) {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(API + "/api/admin/dashboard");
+      const res = await fetch(API + "/api/admin/dashboard", {
+  headers: { "x-admin-key": ADMIN_KEY },
+});
       if (!res.ok) throw new Error("Failed to load dashboard.");
       const json = await res.json();
       setData(json);
@@ -84,7 +86,9 @@ export default function AdminDashboard({ onLogout }) {
 
   const fetchSuites = async () => {
     try {
-      const res = await fetch(API + "/api/suites/admin");
+      const res = await fetch(API + "/api/suites/admin", {
+  headers: { "x-admin-key": ADMIN_KEY },
+});
       if (!res.ok) throw new Error("Failed to load properties.");
       const json = await res.json();
       setSuites(json);
@@ -102,10 +106,13 @@ export default function AdminDashboard({ onLogout }) {
     setUpdatingId(id);
     try {
       const res = await fetch(API + "/api/admin/bookings/" + id + "/status", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
+  method: "PATCH",
+  headers: { 
+    "Content-Type": "application/json",
+    "x-admin-key": ADMIN_KEY,
+  },
+  body: JSON.stringify({ status }),
+});
       if (!res.ok) throw new Error("Update failed.");
       await fetchDashboard();
     } catch (err) {
@@ -118,7 +125,10 @@ export default function AdminDashboard({ onLogout }) {
     if (!window.confirm("Permanently delete this booking? This cannot be undone.")) return;
     setUpdatingId(id);
     try {
-      const res = await fetch(API + "/api/bookings/" + id, { method: "DELETE" });
+      const res = await fetch(API + "/api/bookings/" + id, {
+        method: "DELETE",
+        headers: { "x-admin-key": ADMIN_KEY },
+      });
       if (!res.ok) throw new Error("Failed to delete booking.");
       await fetchDashboard();
     } catch (err) {
@@ -184,7 +194,10 @@ export default function AdminDashboard({ onLogout }) {
 
       const res = await fetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-admin-key": ADMIN_KEY,
+        },
         body: JSON.stringify(payload),
       });
 
@@ -205,7 +218,10 @@ export default function AdminDashboard({ onLogout }) {
   const handleDeleteSuite = async (id) => {
     if (!window.confirm("Remove this property from the listing?")) return;
     try {
-      const res = await fetch(API + "/api/suites/" + id, { method: "DELETE" });
+      const res = await fetch(API + "/api/suites/" + id, { 
+  method: "DELETE",
+  headers: { "x-admin-key": ADMIN_KEY },
+});
       if (!res.ok) throw new Error("Failed to remove property.");
       await fetchSuites();
     } catch (err) {
