@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import API from "../api";
 import { X, CheckCircle, AlertCircle, Loader, Shield, Phone } from "lucide-react";
+import API from "../api";
 import { formatKES } from "../data/suites";
 
 const INITIAL_FORM = {
@@ -34,8 +34,10 @@ function formatDate(dateStr) {
 export default function BookingModal({ suite, onClose }) {
   const [form, setForm] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState({});
-  const [step, setStep] = useState("form"); // form | deposit | loading | success | error
+  const [step, setStep] = useState("form");
   const overlayRef = useRef(null);
+
+  const bookingRef = "TWG-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4).toUpperCase();
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -86,7 +88,6 @@ export default function BookingModal({ suite, onClose }) {
   const handlePayDeposit = async () => {
     setStep("loading");
     try {
-      // Step 1 — Save booking to database
       const bookingRes = await fetch(API + "/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -99,9 +100,7 @@ export default function BookingModal({ suite, onClose }) {
         }),
       });
       if (!bookingRes.ok) throw new Error("Booking failed");
-      const bookingData = await bookingRes.json();
 
-      // Step 2 — Initiate STK Push
       const mpesaRes = await fetch(API + "/api/mpesa/stkpush", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -114,7 +113,7 @@ export default function BookingModal({ suite, onClose }) {
       });
 
       if (!mpesaRes.ok) throw new Error("Payment initiation failed");
-    
+      // Stay on loading screen — user confirms manually after paying
     } catch {
       setStep("error");
     }
@@ -127,9 +126,6 @@ export default function BookingModal({ suite, onClose }) {
 
   // Success screen
   if (step === "success") {
-    const bookingRef = "TWG-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4).toUpperCase();
-
-  const handlePayDeposit = async () => {
     const balance = totalCost - deposit;
 
     const handlePrint = () => {
@@ -157,6 +153,9 @@ export default function BookingModal({ suite, onClose }) {
               .footer p { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; color: #3D3830; }
               .arrival-note { text-align: center; margin-top: 16px; font-size: 11px; border: 1px solid #1C1A17; padding: 10px; letter-spacing: 1px; text-transform: uppercase; }
               @media print { body { padding: 20px; } }
+              @page { margin: 10mm; }
+              a[href]:after { content: none !important; }
+              abbr[title]:after { content: none !important; }
             </style>
           </head>
           <body>
@@ -165,15 +164,12 @@ export default function BookingModal({ suite, onClose }) {
               <div class="brand-sub">Kenya Collection</div>
               <div class="title">Booking Confirmation Receipt</div>
             </div>
-
             <div class="ref">${bookingRef}</div>
-
             <div class="section">
               <div class="row"><span class="label">Guest Name</span><span class="value">${form.fullName}</span></div>
               <div class="row"><span class="label">Email</span><span class="value">${form.email}</span></div>
               <div class="row"><span class="label">Phone</span><span class="value">${form.phone}</span></div>
             </div>
-
             <div class="section">
               <div class="row"><span class="label">Suite</span><span class="value">${suite.name}</span></div>
               <div class="row"><span class="label">Location</span><span class="value">${suite.location}</span></div>
@@ -182,22 +178,18 @@ export default function BookingModal({ suite, onClose }) {
               <div class="row"><span class="label">Check-out</span><span class="value">${formatDate(form.checkOut)}</span></div>
               <div class="row"><span class="label">Nights</span><span class="value">${nights}</span></div>
             </div>
-
             <div class="totals">
               <div class="total-row"><span>Total Stay Cost</span><span>${formatKES(totalCost)}</span></div>
               <div class="total-row deposit"><span>Deposit Paid (50%)</span><span>${formatKES(deposit)}</span></div>
               <div class="total-row balance"><span>Balance Due on Arrival</span><span>${formatKES(balance)}</span></div>
             </div>
-
-            <div class="arrival-note">
-              Present this receipt on arrival to the property
-            </div>
-
+            <div class="arrival-note">Present this receipt on arrival to the property</div>
             <div class="footer">
               <p>Westlands, Nairobi, Kenya</p>
               <p>hello@twigasuites.co.ke</p>
-              <p>+254 729 915 560</p>
+              <p>+254 700 000 000</p>
               <p style="margin-top: 8px; font-size: 10px;">Generated: ${new Date().toLocaleString("en-KE")}</p>
+              <p style="margin-top: 12px; font-size: 10px; letter-spacing: 1px;">© ${new Date().getFullYear()} Twiga Suites. All rights reserved.</p>
             </div>
           </body>
         </html>
@@ -224,21 +216,40 @@ export default function BookingModal({ suite, onClose }) {
           <p className="font-body text-slate/60 text-xs mb-8">
             Print your receipt and present it on arrival.
           </p>
-
           <div className="space-y-3">
-            <button
-              onClick={handlePrint}
-              className="btn-amber w-full justify-center"
-            >
+            <button onClick={handlePrint} className="btn-amber w-full justify-center">
               Download / Print Receipt
             </button>
-            <button
-              onClick={onClose}
-              className="btn-ghost w-full justify-center"
-            >
+            <button onClick={onClose} className="btn-ghost w-full justify-center">
               Close
             </button>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading screen
+  if (step === "loading") {
+    return (
+      <div className="modal-overlay" ref={overlayRef}>
+        <div className="bg-ivory w-full max-w-sm p-10 text-center" style={{ borderTop: "3px solid #C8860A" }}>
+          <Loader size={36} strokeWidth={1.2} className="text-amber mx-auto mb-4 animate-spin" />
+          <h2 className="font-display text-charcoal text-xl mb-2">Check Your Phone</h2>
+          <p className="font-body text-slate text-sm leading-relaxed mb-6">
+            An M-Pesa prompt has been sent to <strong className="text-charcoal">{form.phone}</strong>. Enter your PIN to complete the deposit payment.
+          </p>
+          <div className="bg-amber/10 border border-amber/30 px-4 py-3 mb-6">
+            <p className="font-body text-xs text-amber font-medium tracking-wide">
+              Do not close this window until payment is confirmed.
+            </p>
+          </div>
+          <button onClick={() => setStep("success")} className="btn-amber w-full justify-center mb-3">
+            I Have Paid - Confirm Booking
+          </button>
+          <button onClick={() => setStep("deposit")} className="font-body text-xs text-slate/50 hover:text-slate transition-colors">
+            Go back
+          </button>
         </div>
       </div>
     );
@@ -262,12 +273,8 @@ export default function BookingModal({ suite, onClose }) {
           </div>
 
           <div className="px-6 md:px-8 py-8 space-y-6">
-
-            {/* Booking summary */}
             <div className="bg-ivory-warm border border-charcoal/10 p-5 space-y-3">
-              <h3 className="font-body text-xs tracking-widest uppercase text-amber mb-4">
-                Booking Summary
-              </h3>
+              <h3 className="font-body text-xs tracking-widest uppercase text-amber mb-4">Booking Summary</h3>
               <div className="flex justify-between font-body text-sm">
                 <span className="text-slate">Guest</span>
                 <span className="text-charcoal font-medium">{form.fullName}</span>
@@ -306,7 +313,6 @@ export default function BookingModal({ suite, onClose }) {
               </div>
             </div>
 
-            {/* Deposit callout */}
             <div className="border border-amber/40 bg-amber/5 p-5 space-y-2">
               <div className="flex items-center gap-2 mb-3">
                 <Shield size={14} className="text-amber flex-shrink-0" />
@@ -321,13 +327,10 @@ export default function BookingModal({ suite, onClose }) {
               </p>
               <div className="border-t border-amber/20 pt-3 mt-3 flex justify-between items-center">
                 <span className="font-body text-sm text-slate">Deposit due now</span>
-                <span className="font-display text-amber text-2xl font-semibold">
-                  {formatKES(deposit)}
-                </span>
+                <span className="font-display text-amber text-2xl font-semibold">{formatKES(deposit)}</span>
               </div>
             </div>
 
-            {/* M-Pesa notice */}
             <div className="flex items-start gap-3 bg-charcoal/5 border border-charcoal/10 px-4 py-4">
               <Phone size={14} className="text-charcoal flex-shrink-0 mt-0.5" />
               <p className="font-body text-xs text-slate leading-relaxed">
@@ -338,26 +341,11 @@ export default function BookingModal({ suite, onClose }) {
               </p>
             </div>
 
-            {step === "error" && (
-              <div className="flex items-center gap-3 bg-red-50 border border-red-200 px-4 py-3">
-                <AlertCircle size={16} className="text-red-500 flex-shrink-0" />
-                <p className="font-body text-sm text-red-700">
-                  Something went wrong. Please try again.
-                </p>
-              </div>
-            )}
-
             <div className="flex gap-3">
-              <button
-                onClick={() => setStep("form")}
-                className="btn-ghost flex-1 justify-center"
-              >
+              <button onClick={() => setStep("form")} className="btn-ghost flex-1 justify-center">
                 Edit Details
               </button>
-              <button
-                onClick={handlePayDeposit}
-                className="btn-amber flex-1 justify-center gap-2"
-              >
+              <button onClick={handlePayDeposit} className="btn-amber flex-1 justify-center gap-2">
                 Pay Deposit via M-Pesa
               </button>
             </div>
@@ -372,145 +360,59 @@ export default function BookingModal({ suite, onClose }) {
     );
   }
 
-  // Loading screen
-  if (step === "loading") {
-    return (
-      <div className="modal-overlay" ref={overlayRef}>
-        <div className="bg-ivory w-full max-w-sm p-10 text-center" style={{ borderTop: "3px solid #C8860A" }}>
-          <Loader size={36} strokeWidth={1.2} className="text-amber mx-auto mb-4 animate-spin" />
-          <h2 className="font-display text-charcoal text-xl mb-2">Check Your Phone</h2>
-          <p className="font-body text-slate text-sm leading-relaxed mb-6">
-            An M-Pesa prompt has been sent to <strong className="text-charcoal">{form.phone}</strong>. Enter your PIN to complete the deposit payment.
-          </p>
-          <div className="bg-amber/10 border border-amber/30 px-4 py-3 mb-6">
-            <p className="font-body text-xs text-amber font-medium tracking-wide">
-              Do not close this window until payment is confirmed.
-            </p>
-          </div>
-          <button
-            onClick={() => setStep("success")}
-            className="btn-amber w-full justify-center mb-3"
-          >
-            I Have Paid — Confirm Booking
-          </button>
-          <button
-            onClick={() => setStep("deposit")}
-            className="font-body text-xs text-slate/50 hover:text-slate transition-colors"
-          >
-            Go back
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   // Form screen
   return (
     <div className="modal-overlay" ref={overlayRef} onClick={handleOverlayClick}>
-      <div
-        className="bg-ivory w-full max-w-2xl max-h-[92vh] overflow-y-auto relative"
-        style={{ borderTop: "3px solid #C8860A" }}
-      >
+      <div className="bg-ivory w-full max-w-2xl max-h-[92vh] overflow-y-auto relative" style={{ borderTop: "3px solid #C8860A" }}>
         <div className="sticky top-0 bg-ivory border-b border-charcoal/10 px-6 md:px-8 py-5 flex items-start justify-between z-10">
           <div>
             <p className="card-index mb-1">{suite.id}</p>
-            <h2 className="font-display text-charcoal text-lg font-semibold leading-tight">
-              {suite.name}
-            </h2>
+            <h2 className="font-display text-charcoal text-lg font-semibold leading-tight">{suite.name}</h2>
             <p className="font-body text-slate text-xs mt-0.5">{suite.location}</p>
           </div>
-          <button
-            onClick={onClose}
-            className="text-slate hover:text-charcoal transition-colors mt-1 ml-4 flex-shrink-0"
-            aria-label="Close"
-          >
+          <button onClick={onClose} className="text-slate hover:text-charcoal transition-colors mt-1 ml-4 flex-shrink-0" aria-label="Close">
             <X size={20} strokeWidth={1.5} />
           </button>
         </div>
 
         <form onSubmit={handleFormSubmit} noValidate className="px-6 md:px-8 py-8 space-y-6">
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
               <label className="form-label" htmlFor="fullName">Full Name</label>
-              <input
-                id="fullName"
-                className={"form-input " + (errors.fullName ? "border-red-400" : "")}
-                type="text"
-                placeholder="Amina Wanjiku Njoroge"
-                value={form.fullName}
-                onChange={set("fullName")}
-                autoComplete="name"
-              />
+              <input id="fullName" className={"form-input " + (errors.fullName ? "border-red-400" : "")} type="text" placeholder="Amina Wanjiku Njoroge" value={form.fullName} onChange={set("fullName")} autoComplete="name" />
               {errors.fullName && <p className="mt-1.5 text-xs text-red-500 font-body">{errors.fullName}</p>}
             </div>
             <div>
               <label className="form-label" htmlFor="email">Email Address</label>
-              <input
-                id="email"
-                className={"form-input " + (errors.email ? "border-red-400" : "")}
-                type="email"
-                placeholder="amina@example.co.ke"
-                value={form.email}
-                onChange={set("email")}
-                autoComplete="email"
-              />
+              <input id="email" className={"form-input " + (errors.email ? "border-red-400" : "")} type="email" placeholder="amina@example.co.ke" value={form.email} onChange={set("email")} autoComplete="email" />
               {errors.email && <p className="mt-1.5 text-xs text-red-500 font-body">{errors.email}</p>}
             </div>
           </div>
 
           <div>
             <label className="form-label" htmlFor="phone">Phone Number</label>
-            <input
-              id="phone"
-              className={"form-input " + (errors.phone ? "border-red-400" : "")}
-              type="tel"
-              placeholder="0712 345 678 or +254 712 345 678"
-              value={form.phone}
-              onChange={set("phone")}
-              autoComplete="tel"
-            />
+            <input id="phone" className={"form-input " + (errors.phone ? "border-red-400" : "")} type="tel" placeholder="0712 345 678 or +254 712 345 678" value={form.phone} onChange={set("phone")} autoComplete="tel" />
             {errors.phone && <p className="mt-1.5 text-xs text-red-500 font-body">{errors.phone}</p>}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
               <label className="form-label" htmlFor="checkIn">Check-in Date</label>
-              <input
-                id="checkIn"
-                className={"form-input " + (errors.checkIn ? "border-red-400" : "")}
-                type="date"
-                min={today}
-                value={form.checkIn}
-                onChange={set("checkIn")}
-              />
+              <input id="checkIn" className={"form-input " + (errors.checkIn ? "border-red-400" : "")} type="date" min={today} value={form.checkIn} onChange={set("checkIn")} />
               {errors.checkIn && <p className="mt-1.5 text-xs text-red-500 font-body">{errors.checkIn}</p>}
             </div>
             <div>
               <label className="form-label" htmlFor="checkOut">Check-out Date</label>
-              <input
-                id="checkOut"
-                className={"form-input " + (errors.checkOut ? "border-red-400" : "")}
-                type="date"
-                min={form.checkIn || today}
-                value={form.checkOut}
-                onChange={set("checkOut")}
-              />
+              <input id="checkOut" className={"form-input " + (errors.checkOut ? "border-red-400" : "")} type="date" min={form.checkIn || today} value={form.checkOut} onChange={set("checkOut")} />
               {errors.checkOut && <p className="mt-1.5 text-xs text-red-500 font-body">{errors.checkOut}</p>}
             </div>
           </div>
 
           <div>
             <label className="form-label" htmlFor="guests">
-              Number of Guests
-              <span className="text-slate/50 normal-case"> (max {suite.maxGuests})</span>
+              Number of Guests <span className="text-slate/50 normal-case">(max {suite.maxGuests})</span>
             </label>
-            <select
-              id="guests"
-              className={"form-input " + (errors.guests ? "border-red-400" : "")}
-              value={form.guests}
-              onChange={set("guests")}
-            >
+            <select id="guests" className={"form-input " + (errors.guests ? "border-red-400" : "")} value={form.guests} onChange={set("guests")}>
               {Array.from({ length: suite.maxGuests }, (_, i) => i + 1).map((n) => (
                 <option key={n} value={n}>{n} {n === 1 ? "Guest" : "Guests"}</option>
               ))}
