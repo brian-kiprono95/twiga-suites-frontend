@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { X, CheckCircle, AlertCircle, Loader, Shield, Phone } from "lucide-react";
+import { X, CheckCircle, Loader, Shield, Phone } from "lucide-react";
 import API from "../api";
 import { formatKES } from "../data/suites";
 
