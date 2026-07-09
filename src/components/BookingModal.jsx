@@ -86,7 +86,8 @@ export default function BookingModal({ suite, onClose }) {
   const handlePayDeposit = async () => {
     setStep("loading");
     try {
-      const res = await fetch(API + "/api/bookings", {
+      // Step 1 — Save booking to database
+      const bookingRes = await fetch(API + "/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -97,7 +98,22 @@ export default function BookingModal({ suite, onClose }) {
           depositAmount: deposit,
         }),
       });
-      if (!res.ok) throw new Error("Server error");
+      if (!bookingRes.ok) throw new Error("Booking failed");
+      const bookingData = await bookingRes.json();
+
+      // Step 2 — Initiate STK Push
+      const mpesaRes = await fetch(API + "/api/mpesa/stkpush", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          phone: form.phone,
+          amount: deposit,
+          bookingRef: bookingRef,
+          suiteName: suite.name,
+        }),
+      });
+
+      if (!mpesaRes.ok) throw new Error("Payment initiation failed");
       setStep("success");
     } catch {
       setStep("error");
@@ -112,6 +128,8 @@ export default function BookingModal({ suite, onClose }) {
   // Success screen
   if (step === "success") {
     const bookingRef = "TWG-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4).toUpperCase();
+
+  const handlePayDeposit = async () => {
     const balance = totalCost - deposit;
 
     const handlePrint = () => {
