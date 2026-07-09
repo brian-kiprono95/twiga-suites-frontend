@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { MapPin, Star, Users } from "lucide-react";
 import { formatKES } from "../data/suites";
 
@@ -14,9 +15,9 @@ const GRID_SPAN = {
 };
 
 export default function SuiteCard({ suite, onBook, index }) {
+  const [showAllAmenities, setShowAllAmenities] = useState(false);
   const imgClass = IMG_HEIGHT[suite.cardSize] || IMG_HEIGHT.medium;
   const gridSpan = GRID_SPAN[suite.cardSize] || GRID_SPAN.medium;
-
   return (
     <article className={`suite-card ${gridSpan}`}>
       {/* Image */}
@@ -56,13 +57,16 @@ export default function SuiteCard({ suite, onBook, index }) {
 
         {/* Amenities */}
         <div className="flex flex-wrap gap-2 mb-6">
-          {suite.amenities.slice(0, 3).map((a) => (
+          {(showAllAmenities ? suite.amenities : suite.amenities.slice(0, 3)).map((a) => (
             <span key={a} className="amenity-pill">{a}</span>
           ))}
           {suite.amenities.length > 3 && (
-            <span className="amenity-pill text-amber border-amber/30">
-              +{suite.amenities.length - 3} more
-            </span>
+            <button
+              onClick={() => setShowAllAmenities((v) => !v)}
+              className="amenity-pill text-amber border-amber/30 hover:bg-amber/5 transition-colors cursor-pointer"
+            >
+              {showAllAmenities ? "Show less" : "+" + (suite.amenities.length - 3) + " more"}
+            </button>
           )}
         </div>
 
