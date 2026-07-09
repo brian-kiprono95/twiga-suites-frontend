@@ -114,7 +114,7 @@ export default function BookingModal({ suite, onClose }) {
       });
 
       if (!mpesaRes.ok) throw new Error("Payment initiation failed");
-      setStep("success");
+    
     } catch {
       setStep("error");
     }
@@ -378,10 +378,27 @@ export default function BookingModal({ suite, onClose }) {
       <div className="modal-overlay" ref={overlayRef}>
         <div className="bg-ivory w-full max-w-sm p-10 text-center" style={{ borderTop: "3px solid #C8860A" }}>
           <Loader size={36} strokeWidth={1.2} className="text-amber mx-auto mb-4 animate-spin" />
-          <h2 className="font-display text-charcoal text-xl mb-2">Processing Payment</h2>
-          <p className="font-body text-slate text-sm leading-relaxed">
-            Check your phone for the M-Pesa prompt on <strong>{form.phone}</strong> and enter your PIN.
+          <h2 className="font-display text-charcoal text-xl mb-2">Check Your Phone</h2>
+          <p className="font-body text-slate text-sm leading-relaxed mb-6">
+            An M-Pesa prompt has been sent to <strong className="text-charcoal">{form.phone}</strong>. Enter your PIN to complete the deposit payment.
           </p>
+          <div className="bg-amber/10 border border-amber/30 px-4 py-3 mb-6">
+            <p className="font-body text-xs text-amber font-medium tracking-wide">
+              Do not close this window until payment is confirmed.
+            </p>
+          </div>
+          <button
+            onClick={() => setStep("success")}
+            className="btn-amber w-full justify-center mb-3"
+          >
+            I Have Paid — Confirm Booking
+          </button>
+          <button
+            onClick={() => setStep("deposit")}
+            className="font-body text-xs text-slate/50 hover:text-slate transition-colors"
+          >
+            Go back
+          </button>
         </div>
       </div>
     );
