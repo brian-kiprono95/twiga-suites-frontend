@@ -6,6 +6,7 @@ import AboutSection from "./components/AboutSection";
 import Footer from "./components/Footer";
 import PinGate from "./components/PinGate";
 import AdminDashboard from "./components/AdminDashboard";
+import CookieBanner from "./components/CookieBanner";
 
 function isAdminRoute() {
   return window.location.pathname === "/admin";
@@ -32,6 +33,7 @@ export default function App() {
         <AboutSection />
       </main>
       <Footer />
+      <CookieBanner />
     </div>
   );
 }
