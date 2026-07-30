@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { X, CheckCircle, Loader, Shield, Phone } from "lucide-react";
 import API from "../api";
 import { formatKES } from "../data/suites";
@@ -35,14 +37,37 @@ export default function BookingModal({ suite, onClose }) {
   const [form, setForm] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState({});
   const [step, setStep] = useState("form");
+  const [unavailableDates, setUnavailableDates] = useState([]);
   const overlayRef = useRef(null);
-
   const bookingRef = "TWG-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4).toUpperCase();
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = ""; };
   }, []);
+
+  useEffect(() => {
+    const fetchUnavailable = async () => {
+      try {
+        const res = await fetch(API + "/api/bookings/unavailable/" + suite.id);
+        if (!res.ok) return;
+        const ranges = await res.json();
+        const dates = [];
+        ranges.forEach(({ start, end }) => {
+          const current = new Date(start);
+          const endDate = new Date(end);
+          while (current <= endDate) {
+            dates.push(new Date(current));
+            current.setDate(current.getDate() + 1);
+          }
+        });
+        setUnavailableDates(dates);
+      } catch (err) {
+        console.error("Failed to fetch unavailable dates:", err);
+      }
+    };
+    fetchUnavailable();
+  }, [suite.id]);
 
   const handleOverlayClick = (e) => {
     if (e.target === overlayRef.current) onClose();
@@ -397,13 +422,37 @@ export default function BookingModal({ suite, onClose }) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="form-label" htmlFor="checkIn">Check-in Date</label>
-              <input id="checkIn" className={"form-input " + (errors.checkIn ? "border-red-400" : "")} type="date" min={today} value={form.checkIn} onChange={set("checkIn")} />
+              <label className="form-label">Check-in Date</label>
+              <DatePicker
+                selected={form.checkIn ? new Date(form.checkIn) : null}
+                onChange={(date) => {
+                  setForm((prev) => ({ ...prev, checkIn: date ? date.toISOString().split("T")[0] : "" }));
+                  setErrors((prev) => ({ ...prev, checkIn: null }));
+                }}
+                excludeDates={unavailableDates}
+                minDate={new Date()}
+                placeholderText="Select check-in date"
+                dateFormat="dd/MM/yyyy"
+                className={"form-input w-full " + (errors.checkIn ? "border-red-400" : "")}
+                calendarClassName="twiga-calendar"
+              />
               {errors.checkIn && <p className="mt-1.5 text-xs text-red-500 font-body">{errors.checkIn}</p>}
             </div>
             <div>
-              <label className="form-label" htmlFor="checkOut">Check-out Date</label>
-              <input id="checkOut" className={"form-input " + (errors.checkOut ? "border-red-400" : "")} type="date" min={form.checkIn || today} value={form.checkOut} onChange={set("checkOut")} />
+              <label className="form-label">Check-out Date</label>
+              <DatePicker
+                selected={form.checkOut ? new Date(form.checkOut) : null}
+                onChange={(date) => {
+                  setForm((prev) => ({ ...prev, checkOut: date ? date.toISOString().split("T")[0] : "" }));
+                  setErrors((prev) => ({ ...prev, checkOut: null }));
+                }}
+                excludeDates={unavailableDates}
+                minDate={form.checkIn ? new Date(form.checkIn) : new Date()}
+                placeholderText="Select check-out date"
+                dateFormat="dd/MM/yyyy"
+                className={"form-input w-full " + (errors.checkOut ? "border-red-400" : "")}
+                calendarClassName="twiga-calendar"
+              />
               {errors.checkOut && <p className="mt-1.5 text-xs text-red-500 font-body">{errors.checkOut}</p>}
             </div>
           </div>
