@@ -49,7 +49,7 @@ export default function BookingModal({ suite, onClose }) {
   useEffect(() => {
     const fetchUnavailable = async () => {
       try {
-        const res = await fetch(API + "/api/bookings/unavailable/" + suite.id);
+        const res = await fetch(API + "/api/bookings/unavailable/" + suite._id);
         if (!res.ok) return;
         const ranges = await res.json();
         const dates = [];
@@ -118,13 +118,16 @@ export default function BookingModal({ suite, onClose }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
-          suiteId: suite.id,
+          suiteId: suite._id,
           suiteName: suite.name,
           totalAmount: totalCost,
           depositAmount: deposit,
         }),
       });
-      if (!bookingRes.ok) throw new Error("Booking failed");
+      if (!bookingRes.ok) {
+        const errData = await bookingRes.json();
+        throw new Error(errData.message || "Booking failed");
+      }
 
       const mpesaRes = await fetch(API + "/api/mpesa/stkpush", {
         method: "POST",
@@ -139,7 +142,8 @@ export default function BookingModal({ suite, onClose }) {
 
       if (!mpesaRes.ok) throw new Error("Payment initiation failed");
       // Stay on loading screen — user confirms manually after paying
-    } catch {
+    } catch (err) {
+      console.error("Payment error:", err);
       setStep("error");
     }
   };
